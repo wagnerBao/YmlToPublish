@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  admchatbotapp:
+    image: wagnerbao/docker-admchatbot-api:latest  # Você pode usar uma imagem pública ou privada
+    volumes:
+      - admchatbot_net_volume:/admchatbot/data
+   # ports:
+   #   - "8020:8021"        # Mapeia a porta 80 do container para a porta 8080 da VPS
+    networks:
+      - network_public
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - MONGO_USER=root
+      - MONGO_PASSWORD=1m0chatm0ng0db
+      - MONGO_DATABASE=admchatbot
+      - MONGO_CONNECTION=mongodb://{USER}:{PASSWORD}@5.161.71.93:27017
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+        - node.role == manager
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=network_public"
+        - "traefik.http.routers.admchatbot.rule=Host(`apiadm.imochat.com.br`)"
+        - "traefik.http.routers.admchatbot.entrypoints=websecure"
+        - "traefik.http.routers.admchatbot.priority=1"
+        - "traefik.http.routers.admchatbot.tls.certresolver=letsencryptresolver"
+        - "traefik.http.routers.admchatbot.service=admchatbot"
+        - "traefik.http.services.admchatbot.loadbalancer.server.port=8083"
+
+networks:
+  network_public:
+    name: network_public
+    external: true
+volumes:
+  admchatbot_net_volume:
+    external: true
+    name: admchatbot_net_volume

@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  integradorhomapp:
+    image: wagnerbao/docker-integradorchatbot-api:teste  # Você pode usar uma imagem pública ou privada
+    volumes:
+      - integradorhom_net_volume:/integradorhom/data
+   # ports:
+   #   - "8020:8021"        # Mapeia a porta 80 do container para a porta 8080 da VPS
+    networks:
+      - network_public
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - BaseUrl=http://{CodigoVista}/{Objeto}/{Metodo}?key={KeyIntegracaoVista}
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+        - node.role == manager
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=network_public"
+        - "traefik.http.routers.integradorhom.rule=Host(`api-hom.imochat.com.br`)"
+        - "traefik.http.routers.integradorhom.entrypoints=websecure"
+        - "traefik.http.routers.integradorhom.priority=1"
+        - "traefik.http.routers.integradorhom.tls.certresolver=letsencryptresolver"
+        - "traefik.http.routers.integradorhom.service=integradorhom"
+        - "traefik.http.services.integradorhom.loadbalancer.server.port=8084"
+
+networks:
+  network_public:
+    name: network_public
+    external: true
+volumes:
+  integradorhom_net_volume:
+    external: true
+    name: integradorhom_net_volume

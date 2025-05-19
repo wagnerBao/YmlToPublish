@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  dashboardapp:
+    image: wagnerbao/dashboarreact-brockerchat   # Se você publicou sua imagem em um registry
+    environment:
+      - NEXT_PUBLIC_API_URL=https://apiadm.imochat.com.br  # Ajuste para a URL certa
+    volumes:
+      - dashboardapp_volume:/dashboardapp/data
+    networks:
+      - network_public
+    restart: unless-stopped
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+        - node.role == manager
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=network_public"
+        - "traefik.http.routers.dashboardapp.rule=Host(`dashboard.brokerchat.com.br`)"
+        - "traefik.http.routers.dashboardapp.entrypoints=websecure"
+        - "traefik.http.routers.dashboardapp.priority=1"
+        - "traefik.http.routers.dashboardapp.tls.certresolver=letsencryptresolver"
+        - "traefik.http.routers.dashboardapp.service=dashboardapp"
+        - "traefik.http.services.dashboardapp.loadbalancer.server.port=3000"
+
+networks:
+  network_public:
+    name: network_public
+    external: true
+volumes:
+  dashboardapp_volume:
+    external: true
+    name: dashboardapp_volume

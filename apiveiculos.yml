@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  apiveiculosapp:
+    image: wagnerbao/docker-veiculos-api  # Você pode usar uma imagem pública ou privada
+    volumes:
+      - apiveiculos_net_volume:/apiveiculos/data
+   # ports:
+   #   - "8020:8021"        # Mapeia a porta 80 do container para a porta 8080 da VPS
+    networks:
+      - network_public
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - MONGO_USER=root
+      - MONGO_PASSWORD=1m0chatm0ng0db
+      - MONGO_DATABASE=veiculosdatabase
+      - MONGO_CONNECTION=mongodb://{USER}:{PASSWORD}@5.161.71.93:27017
+      - KEY_GPT=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
+      - URL_COMPLETIONS_GPT=https://api.openai.com/v1/chat/completions
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+        - node.role == manager
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=network_public"
+        - "traefik.http.routers.apiveiculos.rule=Host(`veiculos.imochat.com.br`)"
+        - "traefik.http.routers.apiveiculos.entrypoints=websecure"
+        - "traefik.http.routers.apiveiculos.priority=1"
+        - "traefik.http.routers.apiveiculos.tls.certresolver=letsencryptresolver"
+        - "traefik.http.routers.apiveiculos.service=apiveiculos"
+        - "traefik.http.services.apiveiculos.loadbalancer.server.port=8089"
+
+networks:
+  network_public:
+    name: network_public
+    external: true
+volumes:
+  apiveiculos_net_volume:
+    external: true
+    name: apiveiculos_net_volume
