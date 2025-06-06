@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  importxmlimobiliariaapp:
+    image: wagnerbao/docker-importxmlimobiliarias-job  # Você pode usar uma imagem pública ou privada
+    volumes:
+      - importxmlimobiliariaapp_net_volume:/importxmlimobiliariaapp/data
+   # ports:
+   #   - "8020:8021"        # Mapeia a porta 80 do container para a porta 8080 da VPS
+    networks:
+      - network_public
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - MONGO_USER=root
+      - MONGO_PASSWORD=1m0chatm0ng0db
+      - MONGO_DATABASE=admchatbot
+      - MONGO_CONNECTION=mongodb://{USER}:{PASSWORD}@5.161.71.93:27017
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+        - node.role == manager
+
+networks:
+  network_public:
+    name: network_public
+    external: true
+volumes:
+  importxmlimobiliariaapp_net_volume:
+    external: true
+    name: importxmlimobiliariaapp_net_volume
